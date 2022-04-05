@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Release
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     steps:
       - name: Set outputs
         id: vars
@@ -54,8 +54,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
       - name: Build and Push
         uses: docker/build-push-action@v2

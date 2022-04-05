@@ -89,7 +89,6 @@ deploy: manifests
 manifests: manifests-gen-crds chart-crds
 
 manifests-gen-crds: controller-gen yq
-	ls -l $(GOBIN)
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	for YAMLFILE in config/crd/bases/actions*.yaml; do \
 		$(YQ) write --inplace "$$YAMLFILE" spec.preserveUnknownFields false; \
@@ -229,7 +228,6 @@ ifeq (, $(wildcard $(GOBIN)/controller-gen))
 	go mod init tmp ;\
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	echo $(shell which controller-gen) ;\
 	}
 endif
 CONTROLLER_GEN=$(GOBIN)/controller-gen
