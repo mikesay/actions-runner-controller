@@ -229,6 +229,7 @@ ifeq (, $(wildcard $(GOBIN)/controller-gen))
 	go mod init tmp ;\
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	which controller-gen ;\
 	}
 endif
 CONTROLLER_GEN=$(GOBIN)/controller-gen
