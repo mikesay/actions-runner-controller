@@ -89,7 +89,7 @@ deploy: manifests
 manifests: manifests-gen-crds chart-crds
 
 manifests-gen-crds: controller-gen yq
-	ls -l $(CONTROLLER_GEN)
+	chmod a+x $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	for YAMLFILE in config/crd/bases/actions*.yaml; do \
 		$(YQ) write --inplace "$$YAMLFILE" spec.preserveUnknownFields false; \
