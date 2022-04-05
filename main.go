@@ -184,7 +184,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	runnerSetReconciler := &controllers.RunnerSetReconciler{
+	/*runnerSetReconciler := &controllers.RunnerSetReconciler{
 		Client:               mgr.GetClient(),
 		Log:                  log.WithName("runnerset"),
 		Scheme:               mgr.GetScheme(),
@@ -200,7 +200,7 @@ func main() {
 	if err = runnerSetReconciler.SetupWithManager(mgr); err != nil {
 		log.Error(err, "unable to create controller", "controller", "RunnerSet")
 		os.Exit(1)
-	}
+	}*/
 	if gitHubAPICacheDuration == 0 {
 		gitHubAPICacheDuration = syncPeriod - 10*time.Second
 	}
