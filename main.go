@@ -291,7 +291,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		runnerSetReconciler := &actionssummerwindnet.RunnerSetReconciler{
+		/*runnerSetReconciler := &actionssummerwindnet.RunnerSetReconciler{
 			Client:             mgr.GetClient(),
 			Log:                log.WithName("runnerset"),
 			Scheme:             mgr.GetScheme(),
@@ -303,7 +303,7 @@ func main() {
 		if err = runnerSetReconciler.SetupWithManager(mgr); err != nil {
 			log.Error(err, "unable to create controller", "controller", "RunnerSet")
 			os.Exit(1)
-		}
+		}*/
 
 		log.Info(
 			"Initializing actions-runner-controller",
@@ -375,10 +375,10 @@ func main() {
 				log.Error(err, "unable to create webhook", "webhook", "RunnerDeployment")
 				os.Exit(1)
 			}
-			if err = (&summerwindv1alpha1.RunnerReplicaSet{}).SetupWebhookWithManager(mgr); err != nil {
+			/*if err = (&summerwindv1alpha1.RunnerReplicaSet{}).SetupWebhookWithManager(mgr); err != nil {
 				log.Error(err, "unable to create webhook", "webhook", "RunnerReplicaSet")
 				os.Exit(1)
-			}
+			}*/
 			injector := &actionssummerwindnet.PodRunnerTokenInjector{
 				Client:       mgr.GetClient(),
 				GitHubClient: multiClient,
