@@ -1,4 +1,8 @@
-
+{{/*
+We will use a self managed CA if one is not provided by cert-manager
+*/}}
+{{- $ca := genCA "actions-runner-ca" 3650 }}
+{{- $cert := genSignedCert (printf "%s.%s.svc" (include "actions-runner-controller.webhookServiceName" .) .Release.Namespace) nil (list (printf "%s.%s.svc" (include "actions-runner-controller.webhookServiceName" .) .Release.Namespace)) 3650 $ca }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -20,6 +24,8 @@ webhooks:
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
     caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -38,6 +44,7 @@ webhooks:
     resources:
     - runners
   sideEffects: None
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 - admissionReviewVersions:
   - v1beta1
   {{- if .Values.scope.singleNamespace }}
@@ -47,7 +54,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -66,6 +75,7 @@ webhooks:
     resources:
     - runnerdeployments
   sideEffects: None
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 - admissionReviewVersions:
   - v1beta1
   {{- if .Values.scope.singleNamespace }}
@@ -75,7 +85,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -94,6 +106,7 @@ webhooks:
     resources:
     - runnerreplicasets
   sideEffects: None
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 - admissionReviewVersions:
   - v1beta1
   {{- if .Values.scope.singleNamespace }}
@@ -103,7 +116,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -124,6 +139,7 @@ webhooks:
   objectSelector:
     matchLabels:
       "actions-runner-controller/inject-registration-token": "true"
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -144,7 +160,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -163,6 +181,7 @@ webhooks:
     resources:
     - runners
   sideEffects: None
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 - admissionReviewVersions:
   - v1beta1
   {{- if .Values.scope.singleNamespace }}
@@ -172,7 +191,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -191,6 +212,7 @@ webhooks:
     resources:
     - runnerdeployments
   sideEffects: None
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
 - admissionReviewVersions:
   - v1beta1
   {{- if .Values.scope.singleNamespace }}
@@ -200,7 +222,9 @@ webhooks:
   {{- end }}
   clientConfig:
     {{- if .Values.admissionWebHooks.caBundle }}
-    caBundle: {{ .Values.admissionWebHooks.caBundle }}
+    caBundle: {{ quote .Values.admissionWebHooks.caBundle }}
+    {{- else if not .Values.certManagerEnabled }}
+    caBundle: {{ $ca.Cert | b64enc | quote }}
     {{- end }}
     service:
       name: {{ include "actions-runner-controller.webhookServiceName" . }}
@@ -219,3 +243,19 @@ webhooks:
     resources:
     - runnerreplicasets
   sideEffects: None
+{{ if not (or (hasKey .Values.admissionWebHooks "caBundle") .Values.certManagerEnabled) }}
+  timeoutSeconds: {{ .Values.admissionWebHooks.timeoutSeconds | default 10}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "actions-runner-controller.servingCertName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "actions-runner-controller.labels" . | nindent 4 }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ $cert.Cert | b64enc | quote }}
+  tls.key: {{ $cert.Key | b64enc | quote }}
+  ca.crt: {{ $ca.Cert | b64enc | quote }}
+{{- end }}

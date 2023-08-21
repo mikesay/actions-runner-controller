@@ -29,8 +29,11 @@ bin
 .env
 .test.env
 *.pem
+!github/actions/testdata/*.pem
 
 # OS
 .DS_STORE
 
 /test-assets
+
+/.tools
